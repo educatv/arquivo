@@ -1,0 +1,151 @@
+<!--
+  web_publico/termo_autorizacao_completo.html
+
+  Texto integral do Termo de Autorização de Uso de Imagem, Voz e
+  Conteúdo — pra leitura ANTES de assinar (a pedido do usuário,
+  2026-09-28: "disponibilizar um botão para baixar o termo para leitura
+  integral", linkado a partir de formulario_convidado.html). As 5
+  cláusulas abaixo são cópia literal de regras/termo_autorizacao.py
+  (_pagina_participante) — mesma redação do documento institucional
+  ("eDUCATV - Termo de Autorização Geral.pdf"). Como esta página é
+  aberta ANTES do cadastro (sem nome/projeto/responsável ainda
+  conhecidos), o parágrafo de abertura fica genérico — o documento de
+  verdade, com os dados preenchidos, é gerado depois pelo programa
+  (telas/termo_autorizacao.py) e trazido pela equipe pra assinatura no
+  papel quando aplicável.
+
+  Publicar junto dos outros arquivos deste mesmo host (ver o comentário
+  em formulario_convidado.html pro passo a passo do GitHub Pages) — não
+  precisa de Supabase, é só leitura.
+-->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Termo de Autorização — texto integral · eDUCATV</title>
+<style>
+    :root { --roxo: #5B2FC2; --roxo-claro: #8355F2; --cinza-borda: #C2BCD0; --cinza-texto: #5A5A5A; --cinza-claro: #9E97AF; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #F5F4F7; color: #201E1E; }
+    .cabecalho { background: linear-gradient(120deg, var(--roxo), var(--roxo-claro)); color: #FFFFFF;
+                 padding: 22px 20px; }
+    #botaoVoltar { background: none; border: none; color: #FFFFFF; font-size: 13px; font-weight: 700;
+                   cursor: pointer; padding: 0; margin-bottom: 10px; display: inline-block; }
+    .cabecalho h1 { margin: 0 0 4px; font-size: 18px; }
+    .cabecalho p { margin: 0; font-size: 13px; opacity: 0.9; }
+
+    main { max-width: 720px; margin: 0 auto; padding: 20px 20px 60px; }
+    .aviso-leitura { display: flex; gap: 10px; background: #F5F1FB; border-radius: 10px; padding: 14px 16px;
+                     align-items: flex-start; margin-bottom: 22px; font-size: 12.5px; color: var(--cinza-texto); line-height: 1.6; }
+    .aviso-leitura b { color: #201E1E; }
+
+    .cartao { background: #FFFFFF; border: 1px solid var(--cinza-borda); border-radius: 14px; padding: 22px 24px; }
+    .cartao h2.titulo-termo { text-align: center; font-size: 16px; margin: 0 0 16px; }
+    .cartao > p.abertura { font-size: 13.5px; line-height: 1.6; text-align: justify; }
+    h3 { font-size: 13px; margin: 18px 0 6px; }
+    .cartao p { font-size: 13px; line-height: 1.6; text-align: justify; color: #201E1E; }
+    .fecho { margin-top: 20px; font-size: 13px; }
+    .fecho p { margin: 4px 0; }
+
+    .botao-imprimir { display: inline-flex; align-items: center; gap: 8px; margin-top: 22px; font: inherit;
+                       font-size: 13.5px; font-weight: 700; padding: 12px 18px; border-radius: 10px;
+                       border: 1.5px solid var(--roxo); background: #fff; color: var(--roxo); cursor: pointer; }
+    .botao-imprimir:hover { background: var(--roxo); color: #fff; }
+
+    @media print {
+        body { background: #FFFFFF; }
+        .cabecalho, .aviso-leitura, .botao-imprimir, #botaoVoltar { display: none; }
+        main { padding: 0; max-width: none; }
+        .cartao { border: none; padding: 0; }
+    }
+</style>
+</head>
+<body>
+  <div class="cabecalho">
+    <button id="botaoVoltar" type="button" onclick="history.back()">← Voltar</button>
+    <h1>Termo de Autorização — texto integral</h1>
+    <p>eDUCATV · NEaDUNI · UNIOESTE</p>
+  </div>
+
+  <main>
+    <div class="aviso-leitura">
+      <span>ℹ️</span>
+      <span>
+        Este é o texto completo do termo que você assina ao participar de uma gravação da eDUCATV.
+        <b>Seu nome, o projeto e o responsável</b> entram no documento final — aqui o texto está genérico,
+        só pra leitura antes de decidir.
+      </span>
+    </div>
+
+    <div class="cartao">
+      <h2 class="titulo-termo">TERMO DE AUTORIZAÇÃO DE USO DE IMAGEM, VOZ E CONTEÚDO</h2>
+      <p class="abertura">
+        Pelo presente instrumento, o(a) PARTICIPANTE autoriza a <b>UNIVERSIDADE ESTADUAL DO OESTE DO
+        PARANÁ – UNIOESTE</b>, por meio da <b>eDUCATV/NEaDUNI</b>, a captar, gravar, editar e divulgar
+        sua imagem, voz e participação no projeto em questão, de responsabilidade do RESPONSÁVEL PELO
+        PROJETO.
+      </p>
+
+      <h3>CLÁUSULA PRIMEIRA – OBJETO</h3>
+      <p>
+        Este termo tem por objeto a autorização para o uso da imagem, voz e conteúdo do(a) PARTICIPANTE
+        na gravação do vídeocast/podcast vinculado ao projeto supracitado. A autorização concedida inclui
+        a captação, edição, veiculação e divulgação do material no canal oficial do YouTube da
+        UNIOESTE/eDUCATV, na WebTV e na Webrádio, em sites institucionais e demais plataformas oficiais
+        da eDUCATV/UNIOESTE, quando disponíveis no campus, sem limitação de tempo ou número de exibições.
+        A eDUCATV/NEaDUNI atua exclusivamente como provedora de estúdio, gravação e publicação do
+        material como portfólio institucional, não sendo responsável pelo conteúdo, condução ou
+        resultados do projeto.
+      </p>
+
+      <h3>CLÁUSULA SEGUNDA – DIREITOS DE USO</h3>
+      <p>
+        O PARTICIPANTE autoriza a UNIOESTE e a eDUCATV a utilizarem o material gravado em sua íntegra ou
+        em partes, permitindo edições para adequação de formato e tempo, desde que mantida a integridade
+        do conteúdo e respeitado o contexto original da fala.
+      </p>
+
+      <h3>CLÁUSULA TERCEIRA – RESPONSABILIDADE SOBRE O CONTEÚDO</h3>
+      <p>
+        O PARTICIPANTE assume total responsabilidade pelo conteúdo de suas falas durante a gravação,
+        eximindo a UNIOESTE e a eDUCATV de qualquer responsabilidade legal ou ética sobre opiniões,
+        declarações ou informações fornecidas. Contudo, caso a edição promovida pela eDUCATV resulte na
+        alteração do contexto original das falas, gerando distorções de significado, a responsabilidade
+        por eventuais implicações será da própria eDUCATV.
+      </p>
+
+      <h3>CLÁUSULA QUARTA – REVOGAÇÃO DA AUTORIZAÇÃO</h3>
+      <p>
+        A presente autorização é concedida de forma gratuita e por prazo indeterminado. O PARTICIPANTE
+        poderá solicitar sua revogação a qualquer tempo, mediante requerimento formal pelo e-mail
+        <b>educatv@unioeste.br</b>. Efetivada a revogação, a eDUCATV/NEaDUNI realizará a retirada do
+        material de suas próprias plataformas (YouTube, WebTV, Webrádio, sites institucionais e demais
+        plataformas oficiais), no prazo razoável. Contudo, não é possível garantir a retirada de conteúdo
+        eventualmente divulgado pelo RESPONSÁVEL PELO PROJETO em canais próprios ou de terceiros, sendo
+        de responsabilidade do PARTICIPANTE contatar diretamente o RESPONSÁVEL PELO PROJETO para tais
+        remoções, uma vez que a eDUCATV/NEaDUNI não detém responsabilidade sobre o projeto em si.
+      </p>
+
+      <h3>CLÁUSULA QUINTA – DIVULGAÇÃO NÃO AUTORIZADA</h3>
+      <p>
+        Na hipótese em que um participante tenha tomado parte na gravação sem ter assinado o presente
+        Termo, é vedada qualquer divulgação do material que contenha sua imagem, voz ou participação,
+        inclusive nos canais oficiais da eDUCATV/NEaDUNI e da UNIOESTE. Caso o RESPONSÁVEL PELO PROJETO
+        ou qualquer terceiro proceda à divulgação desse material sem autorização, tal ato será de sua
+        exclusiva e integral responsabilidade, civil e criminal. Constitui indício de divulgação não
+        autorizada, entre outros, a publicação proveniente de usuário, canal ou plataforma distinto dos
+        perfis oficiais da UNIOESTE e da eDUCATV/NEaDUNI, quedando estas completamente isentas, nos
+        termos do art. 20 do Código Civil, da Lei n.º 9.610/1998 e da Lei n.º 13.709/2018 (LGPD).
+      </p>
+
+      <div class="fecho">
+        <p>Por estar de pleno acordo com as condições estabelecidas, o Participante, o Responsável pelo
+        Projeto e o Representante da eDUCATV firmam o Termo no dia da gravação.</p>
+      </div>
+    </div>
+
+    <button class="botao-imprimir" type="button" onclick="window.print()">🖨️ Imprimir / Salvar como PDF</button>
+  </main>
+</body>
+</html>

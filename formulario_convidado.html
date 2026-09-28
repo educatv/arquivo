@@ -76,6 +76,19 @@
                    align-items: flex-start; margin-top: 4px; }
     .aviso-dados span.texto { font-size: 11px; color: var(--cinza-texto); line-height: 1.5; }
 
+    /* Resumo do Termo de Autorização (a pedido do usuário, 2026-09-28 —
+       mockup "mockup_termo_autorizacao.html"): pontos principais em
+       linguagem simples + link pro texto integral, ANTES da pessoa
+       preencher os dados — cabe aqui porque #passoDados já rola
+       (overflow-y: auto), sem quebrar o padrão de tela cheia por passo. */
+    .resumo-termo { background: #F5F1FB; border-radius: 10px; padding: 14px 16px; margin-bottom: 16px; }
+    .resumo-termo-titulo { font-size: 13px; font-weight: 800; display: block; margin-bottom: 8px; }
+    .resumo-termo ul { margin: 0 0 10px; padding-left: 18px; }
+    .resumo-termo li { font-size: 12px; color: var(--cinza-texto); line-height: 1.6; margin-bottom: 4px; }
+    .resumo-termo li b { color: #201E1E; }
+    .resumo-termo a { display: inline-block; font-size: 12.5px; font-weight: 700; color: var(--roxo); text-decoration: none; }
+    .resumo-termo a:hover { text-decoration: underline; }
+
     #botaoContinuar { width: 100%; border: none; border-radius: 10px; padding: 14px 0; font-size: 15px;
                        font-weight: 700; cursor: pointer; margin-top: 6px; }
     #botaoContinuar.habilitado { background: var(--roxo); color: #FFFFFF; }
@@ -127,6 +140,18 @@
     <p style="margin: 0 0 14px 0; font-size: 13px; color: var(--cinza-texto); line-height: 1.5;">
       Preencha seus dados para participar da gravação de hoje.
     </p>
+
+    <div class="resumo-termo">
+      <span class="resumo-termo-titulo">📋 O que você está autorizando</span>
+      <ul>
+        <li><b>🎥 Uso da imagem e voz</b> — gravação, edição e divulgação no YouTube, WebTV, Webrádio e sites institucionais.</li>
+        <li><b>✂️ Edição do material</b> — cortes e ajustes são permitidos, mantendo o sentido do que você disse.</li>
+        <li><b>🗣️ Responsabilidade pela fala</b> — você responde pelo que disser durante a gravação.</li>
+        <li><b>↩️ Pode cancelar depois</b> — revogação gratuita, a qualquer momento, por e-mail.</li>
+        <li><b>🔒 Só quem assina aparece</b> — ninguém é divulgado sem ter autorizado.</li>
+      </ul>
+      <a href="termo_autorizacao_completo.html" target="_blank" rel="noopener">📄 Ler o termo completo</a>
+    </div>
 
     <div class="campo">
       <label for="campoNome">Nome completo</label>
