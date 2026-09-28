@@ -1,0 +1,303 @@
+<!--
+  web_publico/documento_controle_publico.html
+
+  Documento de Controle público — servidor web público, Ideia 1
+  (memória "servidor_web_publico_2026-09"). Página estática que busca
+  os dados AO VIVO a cada abertura (via a API REST/PostgREST que o
+  Supabase já expõe de graça) e desenha a mesma tabela que o botão
+  "Gerar HTML" do programa já gera hoje (regras/documento_controle_html.py)
+  — só que sem precisar clicar em nada: o link nunca muda, o conteúdo é
+  que se atualiza sozinho.
+
+  Só entram Componentes com status "Links completos" (a "Componente
+  finalizada" mencionada em conversa) — ver a view
+  vw_relatorio_publico_controle em banco/atualizar_supabase.sql.
+
+  NÃO precisa de login nem token na URL (decisão do usuário: "não
+  precisa de trava de acesso, desde que somente quem tem o link
+  acesse") — qualquer um com o link vê o relatório.
+
+  ============================================================
+  COMO PUBLICAR (passo a passo manual, uma vez só)
+  ============================================================
+  1. No SQL Editor do painel do Supabase, rode o bloco "Servidor web
+     público, Ideia 1" de banco/atualizar_supabase.sql (cria a view
+     vw_relatorio_publico_controle e libera leitura pública dela).
+  2. Preencha SUPABASE_URL e SUPABASE_ANON_KEY abaixo (Painel do
+     Supabase → Project Settings → API — "Project URL" e "anon public"
+     key; NUNCA use a "service_role"/"secret" key aqui, essa é secreta).
+  3. Hospede este arquivo HTML (já com os valores do passo 2
+     preenchidos) num lugar que sirva arquivos .html de verdade —
+     TESTADO EM 2026-09-24: o Supabase Storage NÃO funciona pra isso,
+     ele força Content-Type: text/plain em qualquer .html de bucket
+     público de propósito (proteção contra phishing/XSS sob o domínio
+     supabase.co) — não tem como contornar via API, é bloqueado no
+     servidor. Use GitHub Pages: crie um repositório PÚBLICO novo no
+     GitHub (github.com/new), suba este arquivo (+ formulario_convidado.html)
+     por "uploading an existing file", e em Settings → Pages ative
+     "Deploy from a branch" (main, / root). Fica em
+     https://<seu-usuário>.github.io/<repositório>/documento_controle_publico.html.
+  4. Esse link nunca muda, mesmo que os dados do relatório mudem — não
+     precisa subir de novo depois de cada gravação/link novo.
+-->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Documento de Controle — eDUCATV</title>
+<style>
+    body { font-family: Calibri, Arial, sans-serif; font-size: 15px; color: #1a1a1a;
+           max-width: 960px; margin: 0 auto; padding: 24px 16px 64px; background: #ffffff; }
+    h1 { text-align: center; font-size: 26px; margin-bottom: 4px; }
+    .gerado-em { text-align: center; color: #555555; font-size: 13px; margin-bottom: 32px; }
+    h2.oferta { font-size: 19px; color: #2f5496; border-bottom: 2px solid #2f5496;
+                padding-bottom: 4px; margin-top: 48px; }
+    .sumario { background: #f7f7f7; border: 1px solid #ddd; border-radius: 6px;
+               padding: 16px 20px; margin-bottom: 24px; }
+    .sumario h2 { margin-top: 0; font-size: 18px; }
+    .sumario ul { margin: 0; padding-left: 20px; }
+    .sumario li { margin-bottom: 6px; }
+    .bloco-componente { margin-top: 24px; margin-bottom: 8px; }
+    table.quadro-cabecalho { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    table.quadro-cabecalho td { border: 1px solid #333333; text-align: center;
+                                 vertical-align: middle; padding: 8px; }
+    .destaque-datas { background: #C6E0B4; font-weight: bold; padding: 6px 10px;
+                       margin: 8px 0 16px; }
+    table.tabela-aulas { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+    table.tabela-aulas th, table.tabela-aulas td { border: 1px solid #999999;
+                                                    padding: 6px 10px; text-align: left; }
+    table.tabela-aulas th { background: #e8e8e8; }
+    table.tabela-aulas td:first-child { width: 48px; text-align: center; }
+    table.tabela-aulas a { color: #0563C1; text-decoration: underline; word-break: break-all; }
+    .aula-vazia { font-style: italic; color: #666666; }
+    .aviso-carregando, .aviso-erro, .aviso-vazio { text-align: center; color: #555555; margin-top: 48px; }
+    .aviso-erro { color: #C0392B; }
+    .linha-finalizacao { font-size: 12.5px; color: #555555; margin: 4px 0 12px; }
+    details.historico-links { font-size: 12.5px; color: #555555; margin: 0 0 12px; }
+    details.historico-links summary { cursor: pointer; width: fit-content; color: #0563C1; }
+    details.historico-links ul { margin: 6px 0 0; padding-left: 20px; }
+    .campo-busca { display: block; width: 100%; max-width: 420px; margin: 0 auto 24px;
+                   padding: 10px 14px; font-size: 14px; border: 1px solid #ccc; border-radius: 6px;
+                   box-sizing: border-box; }
+    .aviso-busca-vazia { text-align: center; color: #555555; margin-top: 24px; display: none; }
+</style>
+</head>
+<body>
+<h1>Documento de Controle — eDUCATV</h1>
+<p class="gerado-em" id="rotuloAtualizadoEm">Carregando...</p>
+<input type="text" id="campoBusca" class="campo-busca"
+       placeholder="Buscar por Curso, Módulo, Componente ou Professor..." oninput="filtrarBusca()">
+<p class="aviso-busca-vazia" id="avisoBuscaVazia">Nenhum resultado para essa busca.</p>
+<div id="corpo"></div>
+
+<script>
+// Preencha com os valores do SEU projeto Supabase (Project Settings →
+// API) antes de publicar — a anon key é pública por natureza (é o que
+// PostgREST usa pra decidir "isto é uma leitura anônima"), não é
+// segredo, mas NUNCA troque pela "service_role" key.
+const SUPABASE_URL = "https://lsqafkrlwylgxhmiaprq.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxzcWFma3Jsd3lsZ3hobWlhcHJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk1ODYzMDMsImV4cCI6MjEwNTE2MjMwM30.JfudmffwhQb_mqpjRQ25eyQeP7go41GY3c8-WfsAGIA";
+
+const MESES_PT = {
+    1: "JANEIRO", 2: "FEVEREIRO", 3: "MARÇO", 4: "ABRIL", 5: "MAIO", 6: "JUNHO",
+    7: "JULHO", 8: "AGOSTO", 9: "SETEMBRO", 10: "OUTUBRO", 11: "NOVEMBRO", 12: "DEZEMBRO",
+};
+const PADRAO_PREFIXO_AULA = /^\s*Aula\s+\d+\s*[-–—]\s*/i;
+
+function escaparHtml(texto) {
+    const div = document.createElement("div");
+    div.textContent = texto ?? "";
+    return div.innerHTML;
+}
+
+function formatarDataBr(valorIso) {
+    if (!valorIso) return "Não definida";
+    const [ano, mes, dia] = valorIso.split("-");
+    return `${dia}/${mes}/${ano}`;
+}
+
+function formatarDataHoraBr(valorTexto) {
+    if (!valorTexto) return null;
+    const [dataParte, horaParte] = valorTexto.split(" ");
+    const dataBr = formatarDataBr(dataParte);
+    return horaParte ? `${dataBr} às ${horaParte.slice(0, 5)}` : dataBr;
+}
+
+function removerPrefixoAula(descricao) {
+    if (!descricao) return descricao;
+    return descricao.replace(PADRAO_PREFIXO_AULA, "");
+}
+
+// Mesma regra de regras/documento_controle.py::_status_do_bloco.
+function statusDoBloco(recebido, enviado) {
+    if (recebido && enviado) return { cor: "C6E0B4", simbolo: "" };
+    if (recebido && !enviado) return { cor: "FFE699", simbolo: "⚠ " };
+    return { cor: "FFC7CE", simbolo: "🔴 " };
+}
+
+// Mesma regra de regras/documento_controle.py::_mes_ano_cabecalho — usa
+// a data de inserção do link mais recente, não a Data de Início da Agenda.
+function mesAnoCabecalho(links) {
+    const datas = links.map((l) => l.criado_em).filter(Boolean);
+    if (datas.length === 0) return null;
+    const maisRecente = datas.reduce((a, b) => (a > b ? a : b));
+    const [ano, mes] = maisRecente.split(" ")[0].split("-");
+    return `${MESES_PT[parseInt(mes, 10)]}/${ano.slice(-2)}`;
+}
+
+function blocoComponenteHtml(linha) {
+    const links = linha.links || [];
+    const { cor, simbolo } = statusDoBloco(linha.data_agendamento_gravacao, linha.data_links_completos);
+    const siglaOuNome = linha.curso_sigla || linha.curso_nome;
+    const mesAno = mesAnoCabecalho(links) || "(sem aulas ainda)";
+
+    let textoComponente = linha.componente_nome;
+    if (linha.carga_horaria) textoComponente = `CH${linha.carga_horaria} - ${textoComponente}`;
+
+    // "Quem finalizou e quando" (a pedido do usuário) — só existe pra
+    // finalizações feitas DEPOIS desta coluna existir; Componentes já
+    // finalizadas antes disso mostram o aviso neutro abaixo.
+    const finalizacaoHtml = linha.finalizado_por_nome
+        ? `<p class="linha-finalizacao">Finalizado por ${escaparHtml(linha.finalizado_por_nome)} em ${escaparHtml(formatarDataHoraBr(linha.finalizado_em))}</p>`
+        : '<p class="linha-finalizacao">Finalização não registrada.</p>';
+
+    // Histórico só de links/reaberturas, recolhido por padrão (a pedido
+    // do usuário: o documento fica enxuto, o detalhe só se pedir).
+    // A coluna `historico` só existe depois da migração de 2026-09-27.
+    const historico = linha.historico || [];
+    const historicoHtml = historico.length === 0 ? "" :
+        '<details class="historico-links"><summary>Histórico</summary><ul>' +
+        historico.map(e => `<li>${escaparHtml(formatarDataHoraBr(e.em))} — ${escaparHtml(e.acao)}${e.por ? " (" + escaparHtml(e.por) + ")" : ""}</li>`).join("") +
+        "</ul></details>";
+
+    const textoBusca = [
+        linha.curso_nome, linha.curso_sigla, linha.modulo_nome,
+        linha.componente_nome, linha.professor_nome,
+    ].filter(Boolean).join(" ").toLowerCase();
+
+    let blocoAulas;
+    if (links.length === 0) {
+        blocoAulas = '<p class="aula-vazia">(Nenhuma aula/link cadastrado ainda para esta Componente.)</p>';
+    } else {
+        const linhasTabela = links.map((link, indice) => {
+            const numero = indice + 1;
+            const estiloLinha = numero % 2 === 0 ? ' style="background:#F2F2F2;"' : "";
+            const descricao = escaparHtml(removerPrefixoAula(link.descricao) || "(sem descrição)");
+            const celulaLink = link.url
+                ? `<a href="${escaparHtml(link.url)}" target="_blank" rel="noopener">${escaparHtml(link.url)}</a>`
+                : '<em class="aula-vazia">(link ainda não disponível)</em>';
+            return `<tr${estiloLinha}><td>${numero}</td><td>${descricao}</td><td>${celulaLink}</td></tr>`;
+        });
+        blocoAulas =
+            '<table class="tabela-aulas"><thead><tr><th>Nº</th><th>Aula</th><th>Link</th></tr></thead>' +
+            `<tbody>${linhasTabela.join("")}</tbody></table>`;
+    }
+
+    return `
+    <div class="bloco-componente" data-busca="${escaparHtml(textoBusca)}">
+      <table class="quadro-cabecalho" style="background:#${cor};">
+        <tr>
+          <td style="width:33%;">
+            <strong>${escaparHtml(simbolo + siglaOuNome)}</strong><br>
+            <strong>${escaparHtml(mesAno)}</strong>
+          </td>
+          <td style="width:34%;">
+            <strong>PROFESSOR:</strong><br>${escaparHtml(linha.professor_nome || "(a definir)")}
+          </td>
+          <td style="width:33%;"><strong>${escaparHtml(textoComponente)}</strong></td>
+        </tr>
+      </table>
+      <p class="destaque-datas">Recebido em ${formatarDataBr(linha.data_agendamento_gravacao)}
+        e Enviado em: ${formatarDataBr(linha.data_links_completos)}</p>
+      ${finalizacaoHtml}
+      ${historicoHtml}
+      ${blocoAulas}
+    </div>
+    `;
+}
+
+async function carregar() {
+    const elementoCorpo = document.getElementById("corpo");
+    const elementoRotulo = document.getElementById("rotuloAtualizadoEm");
+
+    try {
+        const url =
+            `${SUPABASE_URL}/rest/v1/vw_relatorio_publico_controle` +
+            `?select=*&order=data_inicio.asc,componente_nome.asc`;
+        const resposta = await fetch(url, {
+            headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+        });
+        if (!resposta.ok) throw new Error(`HTTP ${resposta.status}`);
+        const linhas = await resposta.json();
+
+        elementoRotulo.textContent = `Atualizado em ${new Date().toLocaleString("pt-BR")}`;
+
+        if (linhas.length === 0) {
+            elementoCorpo.innerHTML = '<p class="aviso-vazio">Nenhuma Componente finalizada ainda.</p>';
+            return;
+        }
+
+        const ofertasDistintas = new Set(linhas.map((l) => l.agenda_id));
+        const usarSumario = ofertasDistintas.size > 1;
+
+        const partesSumario = [];
+        const partesConteudo = [];
+        let agendaAnterior = null;
+        let secaoAberta = false;
+        for (const linha of linhas) {
+            if (linha.agenda_id !== agendaAnterior) {
+                if (secaoAberta) partesConteudo.push("</div>");
+                const ancora = `oferta-${linha.agenda_id}`;
+                const tituloOferta = `${linha.curso_nome} — ${linha.modulo_nome} (Início ${formatarDataBr(linha.data_inicio)})`;
+                // Agrupada numa <div class="secao-oferta"> (a pedido do
+                // usuário, campo de busca) — sem isto, não teria como
+                // esconder o título da oferta inteira quando NENHUMA
+                // Componente dela sobrevive ao filtro de busca.
+                partesConteudo.push(`<div class="secao-oferta"><h2 class="oferta" id="${ancora}">${escaparHtml(tituloOferta)}</h2>`);
+                partesSumario.push(`<li><a href="#${ancora}">${escaparHtml(tituloOferta)}</a></li>`);
+                agendaAnterior = linha.agenda_id;
+                secaoAberta = true;
+            }
+            partesConteudo.push(blocoComponenteHtml(linha));
+        }
+        if (secaoAberta) partesConteudo.push("</div>");
+
+        const sumarioHtml = usarSumario
+            ? `<div class="sumario"><h2>Sumário</h2><ul>${partesSumario.join("")}</ul></div>`
+            : "";
+
+        elementoCorpo.innerHTML = sumarioHtml + partesConteudo.join("");
+        filtrarBusca();
+    } catch (erro) {
+        elementoRotulo.textContent = "";
+        elementoCorpo.innerHTML =
+            '<p class="aviso-erro">Não foi possível carregar o relatório agora. ' +
+            "Tente novamente em alguns instantes.</p>";
+        console.error("Erro ao carregar o Documento de Controle público:", erro);
+    }
+}
+
+function filtrarBusca() {
+    const termo = (document.getElementById("campoBusca").value || "").trim().toLowerCase();
+    const blocos = document.querySelectorAll(".bloco-componente");
+    let algumVisivel = false;
+    blocos.forEach((bloco) => {
+        const corresponde = !termo || (bloco.dataset.busca || "").includes(termo);
+        bloco.style.display = corresponde ? "" : "none";
+        if (corresponde) algumVisivel = true;
+    });
+    // Oferta inteira some se NENHUMA Componente dela sobrou no filtro.
+    document.querySelectorAll(".secao-oferta").forEach((secao) => {
+        const temVisivel = Array.from(secao.querySelectorAll(".bloco-componente"))
+            .some((bloco) => bloco.style.display !== "none");
+        secao.style.display = temVisivel ? "" : "none";
+    });
+    document.getElementById("avisoBuscaVazia").style.display =
+        (termo && !algumVisivel) ? "block" : "none";
+}
+
+carregar();
+</script>
+</body>
+</html>

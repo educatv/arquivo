@@ -1,0 +1,425 @@
+<!--
+  web_publico/formulario_convidado.html
+
+  Formulário do convidado — servidor web público, Ideia 2 (memória
+  "servidor_web_publico_2026-09", mockup aprovado "Formulário do
+  participante" — Formulario-Participante.dc.html). Aberto ao escanear
+  o QR Code do pôster gerado pelo programa
+  (regras/staging_convidados.py::gerar_poster_qrcode) — a URL do QR já
+  traz "?episodio_id=N" (Episódio sendo gravado) ou "?evento_id=N" (só
+  quando o Evento ainda não tem nenhum Episódio).
+
+  2 passos, cada um ocupando a tela toda do celular (a pedido do
+  usuário: "dê preferência para a tela toda... com as orientações
+  necessárias" — a assinatura NÃO é uma caixinha pequena no meio de
+  outros campos):
+    1. Dados pessoais — nome, telefone (DDD + número), CPF (4 caixas),
+       endereço. Nome e telefone são obrigatórios; CPF/endereço opcionais.
+    2. Assinatura — canvas de desenho ocupando a maior parte da tela,
+       com "Limpar"/"Confirmar e enviar", ou "Prefiro assinar na hora,
+       no papel" pra pular a captura digital.
+
+  Grava DIRETO na tabela de staging do Supabase (chave anônima, só
+  INSERT — ver banco/atualizar_supabase.sql) — nenhum dado é lido de
+  volta por este formulário.
+
+  ============================================================
+  COMO PUBLICAR (mesmo host do outro arquivo — ver o dele)
+  ============================================================
+  1. Rode os blocos "Servidor web público, Ideia 2" de
+     banco/atualizar_supabase.sql no SQL Editor do Supabase.
+  2. Preencha SUPABASE_URL e SUPABASE_ANON_KEY abaixo.
+  3. Hospede este arquivo (junto com documento_controle_publico.html)
+     em GitHub Pages — TESTADO EM 2026-09-24: Supabase Storage NÃO
+     serve .html corretamente (força text/plain de propósito, proteção
+     contra phishing/XSS — sem contorno via API). Ver o comentário
+     completo em documento_controle_publico.html pro passo a passo do
+     GitHub Pages.
+  4. Copie a URL pública final e cole em Configurações → Servidor web
+     público → "URL do formulário do convidado".
+-->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Cadastro do participante — eDUCATV</title>
+<style>
+    :root { --roxo: #5B2FC2; --roxo-claro: #8355F2; --cinza-borda: #C2BCD0; --cinza-texto: #5A5A5A; --cinza-claro: #9E97AF; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #F5F4F7;
+           color: #201E1E; height: 100vh; overflow: hidden; }
+    button { font-family: inherit; }
+    input { font-family: inherit; }
+    input:focus { outline: 2px solid var(--roxo-claro); outline-offset: 1px; }
+
+    #app { display: flex; flex-direction: column; height: 100vh; }
+
+    .cabecalho { background: linear-gradient(120deg, var(--roxo), var(--roxo-claro)); color: #FFFFFF;
+                 padding: 18px 20px 14px 20px; display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
+    .cabecalho-topo { display: flex; align-items: center; justify-content: space-between; }
+    #botaoVoltar { background: none; border: none; color: #FFFFFF; font-size: 13px; font-weight: 700;
+                   cursor: pointer; padding: 4px 0; display: none; }
+    #rotuloPasso { font-size: 12px; font-weight: 700; opacity: 0.85; }
+    #rotuloEvento { font-size: 13px; font-weight: 600; opacity: 0.9; }
+    #rotuloTitulo { font-size: 17px; font-weight: 800; }
+
+    .passo { display: none; flex-grow: 1; flex-direction: column; min-height: 0; }
+    .passo.ativo { display: flex; }
+
+    #passoDados { overflow-y: auto; padding: 20px; gap: 14px; }
+    #passoDados label { font-size: 12px; font-weight: 700; display: block; margin-bottom: 5px; }
+    #passoDados .campo { margin-bottom: 14px; }
+    #passoDados input[type="text"] { width: 100%; border: 1px solid var(--cinza-borda); border-radius: 10px;
+                                      padding: 12px 14px; font-size: 15px; }
+    .aviso-dados { display: flex; gap: 10px; background: #F5F1FB; border-radius: 10px; padding: 12px 14px;
+                   align-items: flex-start; margin-top: 4px; }
+    .aviso-dados span.texto { font-size: 11px; color: var(--cinza-texto); line-height: 1.5; }
+
+    #botaoContinuar { width: 100%; border: none; border-radius: 10px; padding: 14px 0; font-size: 15px;
+                       font-weight: 700; cursor: pointer; margin-top: 6px; }
+    #botaoContinuar.habilitado { background: var(--roxo); color: #FFFFFF; }
+    #botaoContinuar.desabilitado { background: #E4E1EC; color: var(--cinza-claro); cursor: default; }
+
+    #passoAssinatura { padding: 0; }
+    .assinatura-instrucao { padding: 16px 20px 0 20px; flex-shrink: 0; }
+    .assinatura-instrucao .titulo { font-size: 16px; font-weight: 800; display: block; }
+    .assinatura-instrucao .dica { font-size: 12px; color: var(--cinza-texto); }
+    .assinatura-area-wrap { flex-grow: 1; padding: 14px 20px; min-height: 0; position: relative; }
+    #canvasAssinatura { width: 100%; height: 100%; border: 2px dashed var(--cinza-borda); border-radius: 16px;
+                        background: #FFFFFF; touch-action: none; display: block; }
+    #rotuloTocarAssinar { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                           font-size: 15px; color: var(--cinza-borda); font-weight: 700; pointer-events: none; }
+    .assinatura-linha-base { position: absolute; left: 40px; right: 40px; bottom: 46px; height: 1px;
+                              background: var(--cinza-borda); pointer-events: none; }
+    .assinatura-legenda { position: absolute; left: 40px; bottom: 28px; font-size: 10px; color: var(--cinza-claro);
+                           pointer-events: none; }
+    .assinatura-botoes { padding: 0 20px 20px 20px; display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; }
+    .assinatura-linha-botoes { display: flex; gap: 10px; }
+    #botaoLimpar { flex: 1; border: 1px solid var(--cinza-borda); color: var(--cinza-texto); background: #FFFFFF;
+                   border-radius: 10px; padding: 12px 0; font-size: 13px; font-weight: 700; cursor: pointer; }
+    #botaoConfirmar { flex: 1.4; border: none; border-radius: 10px; padding: 12px 0; font-size: 13px;
+                      font-weight: 700; cursor: pointer; background: var(--roxo); color: #FFFFFF; }
+    #botaoAssinarPapel { text-align: center; font-size: 13px; color: var(--roxo); font-weight: 700;
+                          cursor: pointer; text-decoration: underline; background: none; border: none; padding: 4px; }
+
+    #passoConfirmacao { flex-direction: column; align-items: center; justify-content: center; gap: 18px; padding: 40px; text-align: center; }
+    #passoConfirmacao .emoji { font-size: 60px; }
+    #passoConfirmacao .titulo { font-size: 20px; font-weight: 800; }
+    #passoConfirmacao .corpo { font-size: 14px; color: var(--cinza-texto); line-height: 1.6; }
+    #passoConfirmacao .rodape { font-size: 12px; color: var(--cinza-claro); }
+
+    .aviso-erro, .aviso-link-invalido { text-align: center; margin: 24px 20px; font-size: 14px; color: #C0392B; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="cabecalho">
+    <div class="cabecalho-topo">
+      <button id="botaoVoltar" type="button">← Voltar</button>
+      <span id="rotuloPasso"></span>
+    </div>
+    <span id="rotuloEvento">eDUCATV</span>
+    <span id="rotuloTitulo">Cadastro do participante</span>
+  </div>
+
+  <div id="passoDados" class="passo ativo">
+    <p style="margin: 0 0 14px 0; font-size: 13px; color: var(--cinza-texto); line-height: 1.5;">
+      Preencha seus dados para participar da gravação de hoje.
+    </p>
+
+    <div class="campo">
+      <label for="campoNome">Nome completo</label>
+      <input type="text" id="campoNome" placeholder="Seu nome" autocomplete="name">
+    </div>
+
+    <div class="campo">
+      <label for="campoTelefone">Telefone</label>
+      <input type="text" id="campoTelefone" inputmode="numeric" maxlength="15" placeholder="(45) 99999-0000">
+    </div>
+
+    <div class="campo">
+      <label for="campoCpf">CPF (opcional)</label>
+      <input type="text" id="campoCpf" inputmode="numeric" maxlength="14" placeholder="000.000.000-00">
+    </div>
+
+    <div class="campo">
+      <label for="campoEndereco">Endereço (opcional)</label>
+      <input type="text" id="campoEndereco" placeholder="Rua, número, cidade" autocomplete="street-address">
+    </div>
+
+    <button id="botaoContinuar" type="button" class="desabilitado">Continuar →</button>
+
+    <div class="aviso-dados">
+      <span>🔒</span>
+      <span class="texto">CPF e endereço são apagados do sistema em até 24h. Só o seu nome permanece registrado como participante.</span>
+    </div>
+  </div>
+
+  <div id="passoAssinatura" class="passo">
+    <div class="assinatura-instrucao">
+      <span class="titulo">Assine no espaço abaixo</span><br>
+      <span class="dica">Use o dedo pra assinar, do jeito que assinaria no papel.</span>
+    </div>
+    <div class="assinatura-area-wrap">
+      <canvas id="canvasAssinatura"></canvas>
+      <span id="rotuloTocarAssinar">✍️ Toque aqui para assinar</span>
+      <div class="assinatura-linha-base"></div>
+      <span class="assinatura-legenda">Assinatura do participante</span>
+    </div>
+    <div class="assinatura-botoes">
+      <div class="assinatura-linha-botoes">
+        <button id="botaoLimpar" type="button">Limpar</button>
+        <button id="botaoConfirmar" type="button">Confirmar e enviar</button>
+      </div>
+      <button id="botaoAssinarPapel" type="button">Prefiro assinar na hora, no papel</button>
+    </div>
+  </div>
+
+  <div id="passoConfirmacao" class="passo">
+    <span class="emoji">✅</span>
+    <span class="titulo">Cadastro enviado!</span>
+    <span class="corpo" id="textoConfirmacao"></span>
+    <span class="rodape">Pode guardar o celular — a equipe já foi avisada.</span>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://lsqafkrlwylgxhmiaprq.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxzcWFma3Jsd3lsZ3hobWlhcHJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk1ODYzMDMsImV4cCI6MjEwNTE2MjMwM30.JfudmffwhQb_mqpjRQ25eyQeP7go41GY3c8-WfsAGIA";
+
+const parametros = new URLSearchParams(window.location.search);
+const episodioId = parametros.get("episodio_id");
+const eventoId = parametros.get("evento_id");
+const app = document.getElementById("app");
+
+function mostrarLinkInvalido() {
+    app.innerHTML =
+        '<p class="aviso-link-invalido">Link inválido — abra este formulário escaneando o QR Code ' +
+        "fornecido pela equipe no dia da gravação.</p>";
+}
+
+if (!episodioId && !eventoId) {
+    mostrarLinkInvalido();
+} else {
+    iniciar();
+}
+
+function iniciar() {
+    const elPasso = { dados: document.getElementById("passoDados"), assinatura: document.getElementById("passoAssinatura"), confirmacao: document.getElementById("passoConfirmacao") };
+    const botaoVoltar = document.getElementById("botaoVoltar");
+    const rotuloPasso = document.getElementById("rotuloPasso");
+    const botaoContinuar = document.getElementById("botaoContinuar");
+    const canvas = document.getElementById("canvasAssinatura");
+    const rotuloTocarAssinar = document.getElementById("rotuloTocarAssinar");
+    const contexto = canvas.getContext("2d");
+
+    let temAssinatura = false;
+    let desenhando = false;
+    let ultimoPonto = null;
+    let caixaTraco = null;
+
+    function registrarPontoNaCaixa(ponto) {
+        if (!caixaTraco) {
+            caixaTraco = { minX: ponto.x, minY: ponto.y, maxX: ponto.x, maxY: ponto.y };
+            return;
+        }
+        caixaTraco.minX = Math.min(caixaTraco.minX, ponto.x);
+        caixaTraco.minY = Math.min(caixaTraco.minY, ponto.y);
+        caixaTraco.maxX = Math.max(caixaTraco.maxX, ponto.x);
+        caixaTraco.maxY = Math.max(caixaTraco.maxY, ponto.y);
+    }
+
+    function obterAssinaturaRecortada() {
+        if (!caixaTraco) return null;
+        const dpr = window.devicePixelRatio || 1;
+        const margem = 12;
+        const x = Math.max(0, caixaTraco.minX - margem) * dpr;
+        const y = Math.max(0, caixaTraco.minY - margem) * dpr;
+        const largura = Math.min(canvas.width - x, (caixaTraco.maxX - caixaTraco.minX + margem * 2) * dpr);
+        const altura = Math.min(canvas.height - y, (caixaTraco.maxY - caixaTraco.minY + margem * 2) * dpr);
+        if (largura <= 0 || altura <= 0) return canvas.toDataURL("image/png");
+        const canvasRecortado = document.createElement("canvas");
+        canvasRecortado.width = largura;
+        canvasRecortado.height = altura;
+        canvasRecortado.getContext("2d").drawImage(canvas, x, y, largura, altura, 0, 0, largura, altura);
+        return canvasRecortado.toDataURL("image/png");
+    }
+
+    function ajustarTamanhoCanvas() {
+        const rect = canvas.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        contexto.scale(dpr, dpr);
+        contexto.lineWidth = 3;
+        contexto.lineCap = "round";
+        contexto.strokeStyle = "#201E1E";
+    }
+
+    function posicaoRelativa(evento) {
+        const rect = canvas.getBoundingClientRect();
+        const ponto = evento.touches ? evento.touches[0] : evento;
+        return { x: ponto.clientX - rect.left, y: ponto.clientY - rect.top };
+    }
+
+    function iniciarTraco(evento) {
+        evento.preventDefault();
+        desenhando = true;
+        ultimoPonto = posicaoRelativa(evento);
+        registrarPontoNaCaixa(ultimoPonto);
+        if (!temAssinatura) {
+            temAssinatura = true;
+            rotuloTocarAssinar.style.display = "none";
+        }
+    }
+
+    function continuarTraco(evento) {
+        if (!desenhando) return;
+        evento.preventDefault();
+        const ponto = posicaoRelativa(evento);
+        contexto.beginPath();
+        contexto.moveTo(ultimoPonto.x, ultimoPonto.y);
+        contexto.lineTo(ponto.x, ponto.y);
+        contexto.stroke();
+        ultimoPonto = ponto;
+        registrarPontoNaCaixa(ponto);
+    }
+
+    function terminarTraco() {
+        desenhando = false;
+    }
+
+    canvas.addEventListener("pointerdown", iniciarTraco);
+    canvas.addEventListener("pointermove", continuarTraco);
+    window.addEventListener("pointerup", terminarTraco);
+    canvas.addEventListener("touchstart", iniciarTraco, { passive: false });
+    canvas.addEventListener("touchmove", continuarTraco, { passive: false });
+    canvas.addEventListener("touchend", terminarTraco);
+
+    document.getElementById("botaoLimpar").addEventListener("click", () => {
+        contexto.clearRect(0, 0, canvas.width, canvas.height);
+        temAssinatura = false;
+        caixaTraco = null;
+        rotuloTocarAssinar.style.display = "block";
+    });
+
+    function irParaPasso(nome) {
+        Object.values(elPasso).forEach((el) => el.classList.remove("ativo"));
+        elPasso[nome].classList.add("ativo");
+        if (nome === "dados") {
+            botaoVoltar.style.display = "none";
+            rotuloPasso.textContent = "Passo 1 de 2";
+        } else if (nome === "assinatura") {
+            botaoVoltar.style.display = "inline";
+            rotuloPasso.textContent = "Passo 2 de 2";
+            requestAnimationFrame(ajustarTamanhoCanvas);
+        } else {
+            botaoVoltar.style.display = "none";
+            rotuloPasso.textContent = "";
+        }
+    }
+
+    botaoVoltar.addEventListener("click", () => irParaPasso("dados"));
+
+    const campoNome = document.getElementById("campoNome");
+    const campoTelefone = document.getElementById("campoTelefone");
+
+    function podeContinuarAgora() {
+        return campoNome.value.trim() !== "" && campoTelefone.value.replace(/\D/g, "") !== "";
+    }
+    function atualizarBotaoContinuar() {
+        botaoContinuar.className = podeContinuarAgora() ? "habilitado" : "desabilitado";
+    }
+    // "input" sozinho não pega todo autopreenchimento do celular (autofill
+    // às vezes preenche o campo sem disparar esse evento) — "change"/"blur"
+    // cobrem esse caso, e o botão também confere o valor de VERDADE no
+    // clique (não só a classe visual, que podia ficar desatualizada).
+    [campoNome, campoTelefone].forEach((el) => {
+        ["input", "change", "blur"].forEach((evento) => el.addEventListener(evento, atualizarBotaoContinuar));
+    });
+    atualizarBotaoContinuar();
+
+    botaoContinuar.addEventListener("click", () => {
+        if (podeContinuarAgora()) {
+            irParaPasso("assinatura");
+        } else {
+            atualizarBotaoContinuar();
+        }
+    });
+
+    // Telefone: aceita fixo (10 dígitos: DDD+8) ou celular (11 dígitos:
+    // DDD+9) — mesmo padrão já usado em telas/cadastro_professor.py pra
+    // aceitar os dois formatos sem travar em nenhum.
+    campoTelefone.addEventListener("input", (evento) => {
+        const digitos = evento.target.value.replace(/\D/g, "").slice(0, 11);
+        let formatado = digitos;
+        if (digitos.length > 10) formatado = `(${digitos.slice(0, 2)}) ${digitos.slice(2, 7)}-${digitos.slice(7)}`;
+        else if (digitos.length > 6) formatado = `(${digitos.slice(0, 2)}) ${digitos.slice(2, 6)}-${digitos.slice(6)}`;
+        else if (digitos.length > 2) formatado = `(${digitos.slice(0, 2)}) ${digitos.slice(2)}`;
+        else if (digitos.length > 0) formatado = `(${digitos}`;
+        evento.target.value = formatado;
+    });
+
+    document.getElementById("campoCpf").addEventListener("input", (evento) => {
+        const digitos = evento.target.value.replace(/\D/g, "").slice(0, 11);
+        let formatado = digitos;
+        if (digitos.length > 9) formatado = `${digitos.slice(0, 3)}.${digitos.slice(3, 6)}.${digitos.slice(6, 9)}-${digitos.slice(9)}`;
+        else if (digitos.length > 6) formatado = `${digitos.slice(0, 3)}.${digitos.slice(3, 6)}.${digitos.slice(6)}`;
+        else if (digitos.length > 3) formatado = `${digitos.slice(0, 3)}.${digitos.slice(3)}`;
+        evento.target.value = formatado;
+    });
+
+    async function enviar(viaPapel) {
+        const nome = campoNome.value.trim();
+        const telefone = campoTelefone.value.trim() || null;
+        const cpf = document.getElementById("campoCpf").value.trim() || null;
+        const endereco = document.getElementById("campoEndereco").value.trim() || null;
+        const assinaturaBase64 = !viaPapel && temAssinatura ? obterAssinaturaRecortada() : null;
+
+        const corpo = {
+            nome, telefone, cpf, endereco,
+            assinatura_base64: assinaturaBase64,
+            episodio_id: episodioId ? parseInt(episodioId, 10) : null,
+            evento_id: eventoId ? parseInt(eventoId, 10) : null,
+            criado_em: new Date().toISOString().slice(0, 19).replace("T", " "),
+        };
+
+        const botao = document.getElementById("botaoConfirmar");
+        botao.disabled = true;
+
+        try {
+            const resposta = await fetch(`${SUPABASE_URL}/rest/v1/staging_participantes_evento`, {
+                method: "POST",
+                headers: {
+                    apikey: SUPABASE_ANON_KEY,
+                    Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+                    "Content-Type": "application/json",
+                    Prefer: "return=minimal",
+                },
+                body: JSON.stringify(corpo),
+            });
+            if (!resposta.ok) throw new Error(`HTTP ${resposta.status}`);
+
+            const primeiroNome = nome ? nome.split(" ")[0] : "participante";
+            const notaAssinatura = viaPapel ? " — assine o termo impresso com a equipe" : "";
+            document.getElementById("textoConfirmacao").textContent =
+                `Obrigado, ${primeiroNome}. Sua participação já está registrada${notaAssinatura}.`;
+            irParaPasso("confirmacao");
+        } catch (erro) {
+            botao.disabled = false;
+            alert("Não foi possível enviar agora. Tente novamente em alguns instantes.");
+            console.error("Erro ao enviar cadastro do convidado:", erro);
+        }
+    }
+
+    document.getElementById("botaoConfirmar").addEventListener("click", () => enviar(false));
+    document.getElementById("botaoAssinarPapel").addEventListener("click", () => enviar(true));
+
+    window.addEventListener("resize", () => {
+        if (elPasso.assinatura.classList.contains("ativo")) ajustarTamanhoCanvas();
+    });
+}
+</script>
+</body>
+</html>
