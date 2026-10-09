@@ -88,7 +88,7 @@
     #passoInformacoes .texto-intro { margin: 0 0 16px; font-size: 13px; color: var(--cinza-texto); line-height: 1.5; }
     .grade-info { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
     .quadro-info { background: #F5F1FB; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 6px; }
-    .quadro-info-emoji { font-size: 22px; }
+    .quadro-info-emoji { font-size: 34px; }
     .quadro-info-titulo { font-size: 12.5px; font-weight: 800; color: #201E1E; }
     .quadro-info-texto { font-size: 11px; color: var(--cinza-texto); line-height: 1.5; }
     .link-termo-completo { display: inline-block; font-size: 12.5px; font-weight: 700; color: var(--roxo);
@@ -174,6 +174,11 @@
         <span class="quadro-info-titulo">Só quem assina aparece</span>
         <span class="quadro-info-texto">Ninguém é divulgado sem ter autorizado.</span>
       </div>
+      <div class="quadro-info">
+        <span class="quadro-info-emoji">⏳</span>
+        <span class="quadro-info-titulo">Dado sensível some rápido</span>
+        <span class="quadro-info-texto">Seu CPF e endereço ficam no sistema só até 1h depois que a equipe gerar o Termo — depois disso, somem.</span>
+      </div>
     </div>
     <a href="termo_autorizacao_completo.html" target="_blank" rel="noopener" class="link-termo-completo">📄 Ler o termo completo</a>
     <button id="botaoProximo" type="button">Próximo →</button>
@@ -208,7 +213,7 @@
 
     <div class="aviso-dados">
       <span>🔒</span>
-      <span class="texto">CPF e endereço são apagados do sistema em até 24h. Só o seu nome permanece registrado como participante.</span>
+      <span class="texto">CPF e endereço são apagados do sistema em até 1h depois do Termo ser gerado. Só o seu nome permanece registrado como participante.</span>
     </div>
   </div>
 
