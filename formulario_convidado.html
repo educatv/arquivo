@@ -81,13 +81,21 @@
        linguagem simples + link pro texto integral, ANTES da pessoa
        preencher os dados — cabe aqui porque #passoDados já rola
        (overflow-y: auto), sem quebrar o padrão de tela cheia por passo. */
-    .resumo-termo { background: #F5F1FB; border-radius: 10px; padding: 14px 16px; margin-bottom: 16px; }
-    .resumo-termo-titulo { font-size: 13px; font-weight: 800; display: block; margin-bottom: 8px; }
-    .resumo-termo ul { margin: 0 0 10px; padding-left: 18px; }
-    .resumo-termo li { font-size: 12px; color: var(--cinza-texto); line-height: 1.6; margin-bottom: 4px; }
-    .resumo-termo li b { color: #201E1E; }
-    .resumo-termo a { display: inline-block; font-size: 12.5px; font-weight: 700; color: var(--roxo); text-decoration: none; }
-    .resumo-termo a:hover { text-decoration: underline; }
+    /* Passo 1 — Informações (quadrados), tela própria antes do preenchimento
+       (a pedido do usuário: separar o resumo do termo do formulário, com um
+       "Próximo" entre os dois, em vez dos dois no mesmo passo). */
+    #passoInformacoes { overflow-y: auto; padding: 20px; }
+    #passoInformacoes .texto-intro { margin: 0 0 16px; font-size: 13px; color: var(--cinza-texto); line-height: 1.5; }
+    .grade-info { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+    .quadro-info { background: #F5F1FB; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 6px; }
+    .quadro-info-emoji { font-size: 22px; }
+    .quadro-info-titulo { font-size: 12.5px; font-weight: 800; color: #201E1E; }
+    .quadro-info-texto { font-size: 11px; color: var(--cinza-texto); line-height: 1.5; }
+    .link-termo-completo { display: inline-block; font-size: 12.5px; font-weight: 700; color: var(--roxo);
+                            text-decoration: none; margin-bottom: 18px; }
+    .link-termo-completo:hover { text-decoration: underline; }
+    #botaoProximo { width: 100%; border: none; border-radius: 10px; padding: 14px 0; font-size: 15px;
+                     font-weight: 700; cursor: pointer; background: var(--roxo); color: #FFFFFF; }
 
     #botaoContinuar { width: 100%; border: none; border-radius: 10px; padding: 14px 0; font-size: 15px;
                        font-weight: 700; cursor: pointer; margin-top: 6px; }
@@ -136,22 +144,45 @@
     <span id="rotuloTitulo">Cadastro do participante</span>
   </div>
 
-  <div id="passoDados" class="passo ativo">
+  <div id="passoInformacoes" class="passo ativo">
+    <p class="texto-intro">
+      📋 Antes de preencher seus dados, veja o que você está autorizando ao participar da gravação de hoje.
+    </p>
+    <div class="grade-info">
+      <div class="quadro-info">
+        <span class="quadro-info-emoji">🎥</span>
+        <span class="quadro-info-titulo">Uso da imagem e voz</span>
+        <span class="quadro-info-texto">Gravação, edição e divulgação no YouTube, WebTV, Webrádio e sites institucionais.</span>
+      </div>
+      <div class="quadro-info">
+        <span class="quadro-info-emoji">✂️</span>
+        <span class="quadro-info-titulo">Edição do material</span>
+        <span class="quadro-info-texto">Cortes e ajustes são permitidos, mantendo o sentido do que você disse.</span>
+      </div>
+      <div class="quadro-info">
+        <span class="quadro-info-emoji">🗣️</span>
+        <span class="quadro-info-titulo">Responsabilidade pela fala</span>
+        <span class="quadro-info-texto">Você responde pelo que disser durante a gravação.</span>
+      </div>
+      <div class="quadro-info">
+        <span class="quadro-info-emoji">↩️</span>
+        <span class="quadro-info-titulo">Pode cancelar depois</span>
+        <span class="quadro-info-texto">Revogação gratuita, a qualquer momento, por e-mail.</span>
+      </div>
+      <div class="quadro-info">
+        <span class="quadro-info-emoji">🔒</span>
+        <span class="quadro-info-titulo">Só quem assina aparece</span>
+        <span class="quadro-info-texto">Ninguém é divulgado sem ter autorizado.</span>
+      </div>
+    </div>
+    <a href="termo_autorizacao_completo.html" target="_blank" rel="noopener" class="link-termo-completo">📄 Ler o termo completo</a>
+    <button id="botaoProximo" type="button">Próximo →</button>
+  </div>
+
+  <div id="passoDados" class="passo">
     <p style="margin: 0 0 14px 0; font-size: 13px; color: var(--cinza-texto); line-height: 1.5;">
       Preencha seus dados para participar da gravação de hoje.
     </p>
-
-    <div class="resumo-termo">
-      <span class="resumo-termo-titulo">📋 O que você está autorizando</span>
-      <ul>
-        <li><b>🎥 Uso da imagem e voz</b> — gravação, edição e divulgação no YouTube, WebTV, Webrádio e sites institucionais.</li>
-        <li><b>✂️ Edição do material</b> — cortes e ajustes são permitidos, mantendo o sentido do que você disse.</li>
-        <li><b>🗣️ Responsabilidade pela fala</b> — você responde pelo que disser durante a gravação.</li>
-        <li><b>↩️ Pode cancelar depois</b> — revogação gratuita, a qualquer momento, por e-mail.</li>
-        <li><b>🔒 Só quem assina aparece</b> — ninguém é divulgado sem ter autorizado.</li>
-      </ul>
-      <a href="termo_autorizacao_completo.html" target="_blank" rel="noopener">📄 Ler o termo completo</a>
-    </div>
 
     <div class="campo">
       <label for="campoNome">Nome completo</label>
@@ -231,7 +262,8 @@ if (!episodioId && !eventoId) {
 }
 
 function iniciar() {
-    const elPasso = { dados: document.getElementById("passoDados"), assinatura: document.getElementById("passoAssinatura"), confirmacao: document.getElementById("passoConfirmacao") };
+    const elPasso = { informacoes: document.getElementById("passoInformacoes"), dados: document.getElementById("passoDados"), assinatura: document.getElementById("passoAssinatura"), confirmacao: document.getElementById("passoConfirmacao") };
+    const ORDEM_PASSOS = ["informacoes", "dados", "assinatura"];
     const botaoVoltar = document.getElementById("botaoVoltar");
     const rotuloPasso = document.getElementById("rotuloPasso");
     const botaoContinuar = document.getElementById("botaoContinuar");
@@ -332,20 +364,26 @@ function iniciar() {
     function irParaPasso(nome) {
         Object.values(elPasso).forEach((el) => el.classList.remove("ativo"));
         elPasso[nome].classList.add("ativo");
-        if (nome === "dados") {
-            botaoVoltar.style.display = "none";
-            rotuloPasso.textContent = "Passo 1 de 2";
-        } else if (nome === "assinatura") {
-            botaoVoltar.style.display = "inline";
-            rotuloPasso.textContent = "Passo 2 de 2";
-            requestAnimationFrame(ajustarTamanhoCanvas);
-        } else {
+        const indice = ORDEM_PASSOS.indexOf(nome);
+        if (indice === -1) {
             botaoVoltar.style.display = "none";
             rotuloPasso.textContent = "";
+            return;
         }
+        botaoVoltar.style.display = indice > 0 ? "inline" : "none";
+        rotuloPasso.textContent = `Passo ${indice + 1} de ${ORDEM_PASSOS.length}`;
+        if (nome === "assinatura") requestAnimationFrame(ajustarTamanhoCanvas);
     }
 
-    botaoVoltar.addEventListener("click", () => irParaPasso("dados"));
+    document.getElementById("botaoProximo").addEventListener("click", () => irParaPasso("dados"));
+
+    botaoVoltar.addEventListener("click", () => {
+        const atual = ORDEM_PASSOS.find((nome) => elPasso[nome].classList.contains("ativo"));
+        const indice = ORDEM_PASSOS.indexOf(atual);
+        if (indice > 0) irParaPasso(ORDEM_PASSOS[indice - 1]);
+    });
+
+    irParaPasso("informacoes");
 
     const campoNome = document.getElementById("campoNome");
     const campoTelefone = document.getElementById("campoTelefone");
