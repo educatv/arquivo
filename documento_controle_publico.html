@@ -9,8 +9,10 @@
   — só que sem precisar clicar em nada: o link nunca muda, o conteúdo é
   que se atualiza sozinho.
 
-  Só entram Componentes com status "Links completos" (a "Componente
-  finalizada" mencionada em conversa) — ver a view
+  Só entram Componentes já "Finalizadas" (data_finalizacao preenchida —
+  2026-11-01: deixou de exigir status "Links completos"/"Compartilhada"
+  antes disso, "Finalizada" sozinha já libera) OU "Em edição" (também
+  2026-11-01, mostrando o Editor responsável) — ver a view
   vw_relatorio_publico_controle em banco/atualizar_supabase.sql.
 
   NÃO precisa de login nem token na URL (decisão do usuário: "não
@@ -166,9 +168,21 @@ function blocoComponenteHtml(linha) {
     // "Quem finalizou e quando" (a pedido do usuário) — só existe pra
     // finalizações feitas DEPOIS desta coluna existir; Componentes já
     // finalizadas antes disso mostram o aviso neutro abaixo.
-    const finalizacaoHtml = linha.finalizado_por_nome
-        ? `<p class="linha-finalizacao">Finalizado por ${escaparHtml(linha.finalizado_por_nome)} em ${escaparHtml(formatarDataHoraBr(linha.finalizado_em))}</p>`
-        : '<p class="linha-finalizacao">Finalização não registrada.</p>';
+    // "Em edição" também aparece (2026-11-01), com o Editor responsável.
+    // "Adicionado por:" só quando OUTRA pessoa (não o responsável) pôs
+    // links — se foi o próprio responsável, fica só "Finalizado por:".
+    const adicionadoHtml = linha.links_adicionados_por_nomes
+        ? ` · Adicionado por: ${escaparHtml(linha.links_adicionados_por_nomes)}`
+        : "";
+    let finalizacaoHtml;
+    // "Links sendo adicionados" sem Finalizada ainda = continua em edição.
+    if (!linha.data_finalizacao && (linha.status === "Em edição" || linha.status === "Links sendo adicionados")) {
+        finalizacaoHtml = `<p class="linha-finalizacao"><strong>Em edição</strong> — responsável: ${escaparHtml(linha.editor_responsavel_nome || "(a definir)")}${adicionadoHtml}</p>`;
+    } else if (linha.finalizado_por_nome) {
+        finalizacaoHtml = `<p class="linha-finalizacao">Finalizado por: ${escaparHtml(linha.finalizado_por_nome)} em ${escaparHtml(formatarDataHoraBr(linha.finalizado_em))}${adicionadoHtml}</p>`;
+    } else {
+        finalizacaoHtml = `<p class="linha-finalizacao">Finalização não registrada.${adicionadoHtml}</p>`;
+    }
 
     // Histórico só de links/reaberturas, recolhido por padrão (a pedido
     // do usuário: o documento fica enxuto, o detalhe só se pedir).
