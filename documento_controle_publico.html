@@ -49,40 +49,78 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Documento de Controle — eDUCATV</title>
 <style>
-    body { font-family: Calibri, Arial, sans-serif; font-size: 15px; color: #1a1a1a;
-           max-width: 960px; margin: 0 auto; padding: 24px 16px 64px; background: #ffffff; }
-    h1 { text-align: center; font-size: 26px; margin-bottom: 4px; }
-    .gerado-em { text-align: center; color: #555555; font-size: 13px; margin-bottom: 32px; }
-    h2.oferta { font-size: 19px; color: #2f5496; border-bottom: 2px solid #2f5496;
-                padding-bottom: 4px; margin-top: 48px; }
-    .sumario { background: #f7f7f7; border: 1px solid #ddd; border-radius: 6px;
+    :root {
+        --cor-fundo: #f3f5f8;
+        --cor-texto: #1f2630;
+        --cor-texto-suave: #5b6676;
+        --cor-primaria: #1f5c6b;
+        --cor-primaria-clara: #e4eef0;
+        --cor-borda: #d8dde4;
+        --cor-card: #ffffff;
+        --raio: 14px;
+    }
+    * { box-sizing: border-box; }
+    body { font-family: Calibri, Arial, sans-serif; font-size: 15px; color: var(--cor-texto);
+           max-width: 980px; margin: 0 auto; padding: 24px 16px 64px; background: var(--cor-fundo); }
+    h1 { text-align: center; font-size: 27px; margin-bottom: 4px; }
+    .gerado-em { text-align: center; color: var(--cor-texto-suave); font-size: 13px; margin-bottom: 28px; }
+    h2.oferta { font-size: 19px; color: var(--cor-primaria); border-bottom: 2px solid var(--cor-primaria-clara);
+                padding-bottom: 8px; margin-top: 44px; margin-bottom: 14px; }
+    .sumario { background: var(--cor-card); border: 1px solid var(--cor-borda); border-radius: var(--raio);
                padding: 16px 20px; margin-bottom: 24px; }
-    .sumario h2 { margin-top: 0; font-size: 18px; }
+    .sumario h2 { margin-top: 0; font-size: 18px; color: var(--cor-texto); }
     .sumario ul { margin: 0; padding-left: 20px; }
     .sumario li { margin-bottom: 6px; }
-    .bloco-componente { margin-top: 24px; margin-bottom: 8px; }
-    table.quadro-cabecalho { width: 100%; border-collapse: collapse; table-layout: fixed; }
-    table.quadro-cabecalho td { border: 1px solid #333333; text-align: center;
-                                 vertical-align: middle; padding: 8px; }
-    .destaque-datas { background: #C6E0B4; font-weight: bold; padding: 6px 10px;
-                       margin: 8px 0 16px; }
-    table.tabela-aulas { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
-    table.tabela-aulas th, table.tabela-aulas td { border: 1px solid #999999;
-                                                    padding: 6px 10px; text-align: left; }
-    table.tabela-aulas th { background: #e8e8e8; }
-    table.tabela-aulas td:first-child { width: 48px; text-align: center; }
-    table.tabela-aulas a { color: #0563C1; text-decoration: underline; word-break: break-all; }
-    .aula-vazia { font-style: italic; color: #666666; }
-    .aviso-carregando, .aviso-erro, .aviso-vazio { text-align: center; color: #555555; margin-top: 48px; }
+
+    .bloco-componente { background: var(--cor-card); border: 1px solid var(--cor-borda);
+                         border-left: 5px solid #cccccc; border-radius: var(--raio);
+                         padding: 18px 20px 14px; margin-bottom: 20px;
+                         box-shadow: 0 1px 2px rgba(20, 30, 40, 0.04); }
+
+    .cabecalho-componente { display: flex; flex-wrap: wrap; gap: 14px; align-items: center;
+                             justify-content: space-between; margin-bottom: 10px; }
+    .cabecalho-componente .identidade { display: flex; align-items: center; gap: 10px; min-width: 160px; }
+    .selo-status { display: inline-flex; align-items: center; font-size: 13px; font-weight: 700;
+                   color: #3a3a2a; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+    .cabecalho-componente .mes { color: var(--cor-texto-suave); font-size: 13px; }
+    .cabecalho-componente .professor { font-size: 13.5px; color: var(--cor-texto-suave); }
+    .cabecalho-componente .professor strong { color: var(--cor-texto); }
+    .selo-ppl { display: inline-flex; align-items: center; font-size: 11px; font-weight: 700; color: #7a4fa0;
+                background: #f1e9f8; border-radius: 999px; padding: 2px 8px; margin-left: 6px; }
+    .cabecalho-componente .componente-nome { font-weight: 600; text-align: right; flex: 1; min-width: 220px; }
+
+    .destaque-datas { display: inline-block; background: var(--cor-primaria-clara); color: var(--cor-primaria);
+                       font-weight: 600; font-size: 13px; padding: 6px 12px; border-radius: 999px;
+                       margin: 0 0 10px; }
+    table.tabela-aulas { width: 100%; border-collapse: collapse; margin: 0; }
+    table.tabela-aulas th, table.tabela-aulas td { padding: 9px 14px; text-align: left;
+                                                    border-bottom: 1px solid var(--cor-borda); }
+    table.tabela-aulas tr:last-child td { border-bottom: none; }
+    table.tabela-aulas th { background: var(--cor-primaria); color: #ffffff; font-size: 13px;
+                             font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; }
+    table.tabela-aulas td:first-child, table.tabela-aulas th:first-child { width: 48px; text-align: center;
+                                                                            color: var(--cor-texto-suave); }
+    table.tabela-aulas tbody tr:nth-child(even) { background: #f6f8fa; }
+    table.tabela-aulas a { color: #0b6e8c; text-decoration: underline; word-break: break-all; }
+    .aula-vazia { font-style: italic; color: var(--cor-texto-suave); }
+    .tabela-wrap { border: 1px solid var(--cor-borda); border-radius: 12px; overflow: hidden; }
+    .aviso-carregando, .aviso-erro, .aviso-vazio { text-align: center; color: var(--cor-texto-suave); margin-top: 48px; }
     .aviso-erro { color: #C0392B; }
-    .linha-finalizacao { font-size: 12.5px; color: #555555; margin: 4px 0 12px; }
-    details.historico-links { font-size: 12.5px; color: #555555; margin: 0 0 12px; }
-    details.historico-links summary { cursor: pointer; width: fit-content; color: #0563C1; }
-    details.historico-links ul { margin: 6px 0 0; padding-left: 20px; }
+    .linha-finalizacao { font-style: italic; font-size: 13px; color: var(--cor-texto-suave); margin: 2px 0 10px; }
+    details.historico-links { font-size: 12.5px; color: var(--cor-texto-suave); margin: 0 0 12px;
+                               background: #f8f9fb; border: 1px solid var(--cor-borda); border-radius: 8px;
+                               padding: 6px 10px; }
+    details.historico-links summary { cursor: pointer; width: fit-content; color: var(--cor-primaria); font-weight: 600; }
+    details.historico-links ul { margin: 6px 0 0; padding-left: 18px; }
+    .ferramentas-aulas { display: flex; justify-content: flex-end; margin-bottom: 6px; }
+    .botao-copiar { font-size: 12.5px; font-weight: 600; color: var(--cor-primaria);
+                     background: var(--cor-primaria-clara); border: none; border-radius: 999px;
+                     padding: 5px 12px; cursor: pointer; }
+    .botao-copiar:hover { background: #d7e6e9; }
     .campo-busca { display: block; width: 100%; max-width: 420px; margin: 0 auto 24px;
-                   padding: 10px 14px; font-size: 14px; border: 1px solid #ccc; border-radius: 6px;
+                   padding: 10px 14px; font-size: 14px; border: 1px solid var(--cor-borda); border-radius: 10px;
                    box-sizing: border-box; }
-    .aviso-busca-vazia { text-align: center; color: #555555; margin-top: 24px; display: none; }
+    .aviso-busca-vazia { text-align: center; color: var(--cor-texto-suave); margin-top: 24px; display: none; }
     .logos-institucionais { display: flex; justify-content: center; align-items: center;
                              gap: 28px; flex-wrap: wrap; margin-bottom: 20px; }
     .logos-institucionais img { height: 36px; width: auto; }
@@ -113,12 +151,28 @@ const MESES_PT = {
     1: "JANEIRO", 2: "FEVEREIRO", 3: "MARÇO", 4: "ABRIL", 5: "MAIO", 6: "JUNHO",
     7: "JULHO", 8: "AGOSTO", 9: "SETEMBRO", 10: "OUTUBRO", 11: "NOVEMBRO", 12: "DEZEMBRO",
 };
-const PADRAO_PREFIXO_AULA = /^\s*Aula\s+\d+\s*[-–—]\s*/i;
+// Acumula, na mesma ordem em que os cards são montados, o texto de
+// "Aula — Link" de cada Componente — o botão "Copiar aulas e links" lê
+// daqui pelo índice, em vez de guardar o texto num atributo HTML (evita
+// qualquer problema de escape de aspas dentro do texto copiado).
+let textosCopiaAulas = [];
 
 function escaparHtml(texto) {
     const div = document.createElement("div");
     div.textContent = texto ?? "";
     return div.innerHTML;
+}
+
+function copiarAulasLinks(indice, botao) {
+    const texto = textosCopiaAulas[indice] || "";
+    const textoOriginalBotao = botao.textContent;
+    navigator.clipboard.writeText(texto).then(() => {
+        botao.textContent = "✅ Copiado!";
+        setTimeout(() => { botao.textContent = textoOriginalBotao; }, 1800);
+    }).catch(() => {
+        botao.textContent = "Não foi possível copiar";
+        setTimeout(() => { botao.textContent = textoOriginalBotao; }, 1800);
+    });
 }
 
 function formatarDataBr(valorIso) {
@@ -132,11 +186,6 @@ function formatarDataHoraBr(valorTexto) {
     const [dataParte, horaParte] = valorTexto.split(" ");
     const dataBr = formatarDataBr(dataParte);
     return horaParte ? `${dataBr} às ${horaParte.slice(0, 5)}` : dataBr;
-}
-
-function removerPrefixoAula(descricao) {
-    if (!descricao) return descricao;
-    return descricao.replace(PADRAO_PREFIXO_AULA, "");
 }
 
 // Mesma regra de regras/documento_controle.py::_status_do_bloco.
@@ -164,6 +213,16 @@ function blocoComponenteHtml(linha) {
 
     let textoComponente = linha.componente_nome;
     if (linha.carga_horaria) textoComponente = `CH${linha.carga_horaria} - ${textoComponente}`;
+
+    // Curso "projeto especial" (ex.: Pena Justa) — a VIEW já troca
+    // professor_nome pelo codinome com o prefixo "🎭 " nesse caso (ver
+    // mascarar_nome_publico/vw_relatorio_publico_controle em
+    // banco/atualizar_supabase.sql); aqui só decide mostrar o selo
+    // "codinome" ao lado, sem nenhum outro rastro do nome real.
+    const ehCodinome = (linha.professor_nome || "").startsWith("🎭");
+    const professorHtml = ehCodinome
+        ? `${escaparHtml(linha.professor_nome)}<span class="selo-ppl">codinome</span>`
+        : escaparHtml(linha.professor_nome || "(a definir)");
 
     // "Quem finalizou e quando" (a pedido do usuário) — só existe pra
     // finalizações feitas DEPOIS desta coluna existir; Componentes já
@@ -198,42 +257,49 @@ function blocoComponenteHtml(linha) {
         linha.componente_nome, linha.professor_nome,
     ].filter(Boolean).join(" ").toLowerCase();
 
-    let blocoAulas;
-    if (links.length === 0) {
-        blocoAulas = '<p class="aula-vazia">(Nenhuma aula/link cadastrado ainda para esta Componente.)</p>';
-    } else {
+    let blocoAulas = '<p class="aula-vazia">(Nenhuma aula/link cadastrado ainda para esta Componente.)</p>';
+    let ferramentasHtml = "";
+    if (links.length > 0) {
         const linhasTabela = links.map((link, indice) => {
             const numero = indice + 1;
-            const estiloLinha = numero % 2 === 0 ? ' style="background:#F2F2F2;"' : "";
-            const descricao = escaparHtml(removerPrefixoAula(link.descricao) || "(sem descrição)");
+            const descricao = escaparHtml(link.descricao || "(sem descrição)");
             const celulaLink = link.url
                 ? `<a href="${escaparHtml(link.url)}" target="_blank" rel="noopener">${escaparHtml(link.url)}</a>`
                 : '<em class="aula-vazia">(link ainda não disponível)</em>';
-            return `<tr${estiloLinha}><td>${numero}</td><td>${descricao}</td><td>${celulaLink}</td></tr>`;
+            return `<tr><td>${numero}</td><td>${descricao}</td><td>${celulaLink}</td></tr>`;
         });
         blocoAulas =
-            '<table class="tabela-aulas"><thead><tr><th>Nº</th><th>Aula</th><th>Link</th></tr></thead>' +
-            `<tbody>${linhasTabela.join("")}</tbody></table>`;
+            '<div class="tabela-wrap"><table class="tabela-aulas"><thead><tr><th>Nº</th><th>Aula</th><th>Link</th></tr></thead>' +
+            `<tbody>${linhasTabela.join("")}</tbody></table></div>`;
+
+        // Texto pronto pra colar num e-mail/documento — uma linha por
+        // Aula, "Aula N - Nome da aula — link". Guardado por índice em
+        // textosCopiaAulas (ver copiarAulasLinks), não num atributo
+        // HTML, pra nenhuma aspas dentro da descrição quebrar o markup.
+        const textoCopia = links
+            .map((link) => `${link.descricao || "(sem descrição)"} — ${link.url || "(link ainda não disponível)"}`)
+            .join("\n");
+        const indiceCopia = textosCopiaAulas.length;
+        textosCopiaAulas.push(textoCopia);
+        ferramentasHtml =
+            `<div class="ferramentas-aulas"><button type="button" class="botao-copiar" ` +
+            `onclick="copiarAulasLinks(${indiceCopia}, this)">📋 Copiar aulas e links</button></div>`;
     }
 
     return `
-    <div class="bloco-componente" data-busca="${escaparHtml(textoBusca)}">
-      <table class="quadro-cabecalho" style="background:#${cor};">
-        <tr>
-          <td style="width:33%;">
-            <strong>${escaparHtml(simbolo + siglaOuNome)}</strong><br>
-            <strong>${escaparHtml(mesAno)}</strong>
-          </td>
-          <td style="width:34%;">
-            <strong>PROFESSOR:</strong><br>${escaparHtml(linha.professor_nome || "(a definir)")}
-          </td>
-          <td style="width:33%;"><strong>${escaparHtml(textoComponente)}</strong></td>
-        </tr>
-      </table>
-      <p class="destaque-datas">Recebido em ${formatarDataBr(linha.data_agendamento_gravacao)}
-        e Enviado em: ${formatarDataBr(linha.data_links_completos)}</p>
+    <div class="bloco-componente" data-busca="${escaparHtml(textoBusca)}" style="border-left-color:#${cor};">
+      <div class="cabecalho-componente">
+        <div class="identidade">
+          <span class="selo-status" style="background:#${cor};">${escaparHtml(simbolo + siglaOuNome)}</span>
+          <span class="mes">${escaparHtml(mesAno)}</span>
+        </div>
+        <div class="professor"><strong>PROFESSOR:</strong> ${professorHtml}</div>
+        <div class="componente-nome">${escaparHtml(textoComponente)}</div>
+      </div>
+      <span class="destaque-datas">Recebido em ${formatarDataBr(linha.data_agendamento_gravacao)} · Enviado em ${formatarDataBr(linha.data_links_completos)}</span>
       ${finalizacaoHtml}
       ${historicoHtml}
+      ${ferramentasHtml}
       ${blocoAulas}
     </div>
     `;
@@ -262,6 +328,11 @@ async function carregar() {
 
         const ofertasDistintas = new Set(linhas.map((l) => l.agenda_id));
         const usarSumario = ofertasDistintas.size > 1;
+
+        // Zera a cada recarregamento — os índices usados pelo botão
+        // "Copiar aulas e links" (onclick="copiarAulasLinks(N, this)")
+        // só são válidos pra ESTE innerHTML recém-montado.
+        textosCopiaAulas = [];
 
         const partesSumario = [];
         const partesConteudo = [];
