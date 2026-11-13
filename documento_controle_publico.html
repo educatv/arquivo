@@ -135,7 +135,7 @@
 <h1>Documento de Controle — eDUCATV</h1>
 <p class="gerado-em" id="rotuloAtualizadoEm">Carregando...</p>
 <input type="text" id="campoBusca" class="campo-busca"
-       placeholder="Buscar por Curso, Módulo, Componente ou Professor..." oninput="filtrarBusca()">
+       placeholder="Buscar por Curso, Módulo, Componente ou Docente..." oninput="filtrarBusca()">
 <p class="aviso-busca-vazia" id="avisoBuscaVazia">Nenhum resultado para essa busca.</p>
 <div id="corpo"></div>
 
@@ -188,11 +188,13 @@ function formatarDataHoraBr(valorTexto) {
     return horaParte ? `${dataBr} às ${horaParte.slice(0, 5)}` : dataBr;
 }
 
-// Mesma regra de regras/documento_controle.py::_status_do_bloco.
+// Mesma regra de regras/documento_controle.py::_status_do_bloco (cores
+// escurecidas a pedido do usuário, 2026-11-13, com contraste de texto
+// verificado — ver regras/documento_controle.py::_COR_TEXTO_STATUS).
 function statusDoBloco(recebido, enviado) {
-    if (recebido && enviado) return { cor: "C6E0B4", simbolo: "" };
-    if (recebido && !enviado) return { cor: "FFE699", simbolo: "⚠ " };
-    return { cor: "FFC7CE", simbolo: "🔴 " };
+    if (recebido && enviado) return { cor: "1E6B2E", simbolo: "", corTexto: "FFFFFF" };
+    if (recebido && !enviado) return { cor: "D4A017", simbolo: "⚠ ", corTexto: "1A1A1A" };
+    return { cor: "B3261E", simbolo: "🔴 ", corTexto: "FFFFFF" };
 }
 
 // Mesma regra de regras/documento_controle.py::_mes_ano_cabecalho — usa
@@ -207,7 +209,7 @@ function mesAnoCabecalho(links) {
 
 function blocoComponenteHtml(linha) {
     const links = linha.links || [];
-    const { cor, simbolo } = statusDoBloco(linha.data_agendamento_gravacao, linha.data_links_completos);
+    const { cor, simbolo, corTexto } = statusDoBloco(linha.data_agendamento_gravacao, linha.data_links_completos);
     const siglaOuNome = linha.curso_sigla || linha.curso_nome;
     const mesAno = mesAnoCabecalho(links) || "(sem aulas ainda)";
 
@@ -290,10 +292,10 @@ function blocoComponenteHtml(linha) {
     <div class="bloco-componente" data-busca="${escaparHtml(textoBusca)}" style="border-left-color:#${cor};">
       <div class="cabecalho-componente">
         <div class="identidade">
-          <span class="selo-status" style="background:#${cor};">${escaparHtml(simbolo + siglaOuNome)}</span>
+          <span class="selo-status" style="background:#${cor}; color:#${corTexto};">${escaparHtml(simbolo + siglaOuNome)}</span>
           <span class="mes">${escaparHtml(mesAno)}</span>
         </div>
-        <div class="professor"><strong>PROFESSOR:</strong> ${professorHtml}</div>
+        <div class="professor"><strong>DOCENTE:</strong> ${professorHtml}</div>
         <div class="componente-nome">${escaparHtml(textoComponente)}</div>
       </div>
       <span class="destaque-datas">Recebido em ${formatarDataBr(linha.data_agendamento_gravacao)} · Enviado em ${formatarDataBr(linha.data_links_completos)}</span>

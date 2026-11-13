@@ -213,7 +213,7 @@
       <div class="quadro-info">
         <span class="quadro-info-emoji">⏳</span>
         <span class="quadro-info-titulo">Dado sensível some rápido</span>
-        <span class="quadro-info-texto">Seu CPF e endereço ficam no sistema só até 1h depois que a equipe gerar o Termo — depois disso, somem.</span>
+        <span class="quadro-info-texto">Seu documento e endereço ficam no sistema só até 1h depois que a equipe gerar o Termo — depois disso, somem.</span>
       </div>
     </div>
     <a href="termo_autorizacao_completo.html" target="_blank" rel="noopener" class="link-termo-completo">📄 Ler o termo completo</a>
@@ -231,25 +231,30 @@
     </div>
 
     <div class="campo">
+      <label for="campoPais">País</label>
+      <select id="campoPais"></select>
+    </div>
+
+    <div class="campo">
       <label for="campoTelefone">Telefone</label>
-      <input type="text" id="campoTelefone" inputmode="numeric" maxlength="15" placeholder="(45) 99999-0000">
+      <input type="text" id="campoTelefone" maxlength="20" placeholder="(45) 99999-0000">
     </div>
 
     <div class="campo">
-      <label for="campoCpf">CPF (opcional)</label>
-      <input type="text" id="campoCpf" inputmode="numeric" maxlength="14" placeholder="000.000.000-00">
+      <label for="campoCpf">Nº do documento (CPF, RG, passaporte...)</label>
+      <input type="text" id="campoCpf" maxlength="30" placeholder="000.000.000-00">
     </div>
 
     <div class="campo">
-      <label for="campoEndereco">Endereço (opcional)</label>
-      <input type="text" id="campoEndereco" placeholder="Rua, número, cidade" autocomplete="street-address">
+      <label for="campoEndereco">Cidade, Estado e País onde reside (opcional)</label>
+      <input type="text" id="campoEndereco" placeholder="Cidade, Estado, País" autocomplete="street-address">
     </div>
 
     <button id="botaoContinuar" type="button" class="desabilitado">Continuar →</button>
 
     <div class="aviso-dados">
       <span>🔒</span>
-      <span class="texto">CPF e endereço são apagados do sistema em até 1h depois do Termo ser gerado. Só o seu nome permanece registrado como participante.</span>
+      <span class="texto">Documento e endereço são apagados do sistema em até 1h depois do Termo ser gerado. Só o seu nome permanece registrado como participante.</span>
     </div>
   </div>
 
@@ -444,9 +449,34 @@ function iniciar() {
 
     const campoNome = document.getElementById("campoNome");
     const campoTelefone = document.getElementById("campoTelefone");
+    const campoCpf = document.getElementById("campoCpf");
+    const campoPais = document.getElementById("campoPais");
+
+    // Lista de países pro select de DDI/formatação do Telefone — não existe
+    // nenhuma lista assim no projeto, então é nova e vive só aqui (mesmo
+    // padrão de duplicação já usado pra telefone/CPF entre esta página e as
+    // telas internas, já que não há módulo compartilhado Python/JS).
+    const PAISES = [
+        "Brasil", "Argentina", "Bolívia", "Chile", "Colômbia", "Equador",
+        "Paraguai", "Peru", "Uruguai", "Venezuela", "México", "Estados Unidos",
+        "Canadá", "Portugal", "Espanha", "França", "Itália", "Alemanha",
+        "Reino Unido", "Angola", "Moçambique", "Cabo Verde", "Guiné-Bissau",
+        "China", "Japão", "Outro",
+    ];
+    PAISES.forEach((pais) => {
+        const opcao = document.createElement("option");
+        opcao.value = pais;
+        opcao.textContent = pais;
+        campoPais.appendChild(opcao);
+    });
+    campoPais.value = "Brasil";
 
     function podeContinuarAgora() {
-        return campoNome.value.trim() !== "" && campoTelefone.value.replace(/\D/g, "") !== "";
+        return (
+            campoNome.value.trim() !== "" &&
+            campoTelefone.value.replace(/\D/g, "") !== "" &&
+            campoCpf.value.trim() !== ""
+        );
     }
     function atualizarBotaoContinuar() {
         botaoContinuar.className = podeContinuarAgora() ? "habilitado" : "desabilitado";
@@ -455,7 +485,7 @@ function iniciar() {
     // às vezes preenche o campo sem disparar esse evento) — "change"/"blur"
     // cobrem esse caso, e o botão também confere o valor de VERDADE no
     // clique (não só a classe visual, que podia ficar desatualizada).
-    [campoNome, campoTelefone].forEach((el) => {
+    [campoNome, campoTelefone, campoCpf].forEach((el) => {
         ["input", "change", "blur"].forEach((evento) => el.addEventListener(evento, atualizarBotaoContinuar));
     });
     atualizarBotaoContinuar();
@@ -468,10 +498,15 @@ function iniciar() {
         }
     });
 
-    // Telefone: aceita fixo (10 dígitos: DDD+8) ou celular (11 dígitos:
-    // DDD+9) — mesmo padrão já usado em telas/cadastro_professor.py pra
-    // aceitar os dois formatos sem travar em nenhum.
+    // Telefone: no Brasil mantém a máscara de sempre (fixo 10 dígitos ou
+    // celular 11, mesmo padrão de telas/cadastro_professor.py). Pra
+    // qualquer outro país (DDI diferente), vira texto livre — só filtra
+    // caracteres plausíveis (dígitos, espaço, + e -), sem reformatar.
     campoTelefone.addEventListener("input", (evento) => {
+        if (campoPais.value !== "Brasil") {
+            evento.target.value = evento.target.value.replace(/[^\d +-]/g, "");
+            return;
+        }
         const digitos = evento.target.value.replace(/\D/g, "").slice(0, 11);
         let formatado = digitos;
         if (digitos.length > 10) formatado = `(${digitos.slice(0, 2)}) ${digitos.slice(2, 7)}-${digitos.slice(7)}`;
@@ -480,25 +515,26 @@ function iniciar() {
         else if (digitos.length > 0) formatado = `(${digitos}`;
         evento.target.value = formatado;
     });
-
-    document.getElementById("campoCpf").addEventListener("input", (evento) => {
-        const digitos = evento.target.value.replace(/\D/g, "").slice(0, 11);
-        let formatado = digitos;
-        if (digitos.length > 9) formatado = `${digitos.slice(0, 3)}.${digitos.slice(3, 6)}.${digitos.slice(6, 9)}-${digitos.slice(9)}`;
-        else if (digitos.length > 6) formatado = `${digitos.slice(0, 3)}.${digitos.slice(3, 6)}.${digitos.slice(6)}`;
-        else if (digitos.length > 3) formatado = `${digitos.slice(0, 3)}.${digitos.slice(3)}`;
-        evento.target.value = formatado;
+    campoPais.addEventListener("change", () => {
+        // Troca de país no meio do preenchimento: limpa o Telefone pra não
+        // ficar uma máscara de um país aplicada ao formato de outro.
+        campoTelefone.value = "";
+        atualizarBotaoContinuar();
     });
+
+    // Nº do documento (CPF, RG, passaporte...): livre, sem máscara fixa de
+    // dígitos — precisa aceitar letras/hífen pra passaporte/RG de fora.
 
     async function enviar(viaPapel) {
         const nome = campoNome.value.trim();
         const telefone = campoTelefone.value.trim() || null;
-        const cpf = document.getElementById("campoCpf").value.trim() || null;
+        const cpf = campoCpf.value.trim() || null;
         const endereco = document.getElementById("campoEndereco").value.trim() || null;
+        const pais = campoPais.value || null;
         const assinaturaBase64 = !viaPapel && temAssinatura ? obterAssinaturaRecortada() : null;
 
         const corpo = {
-            nome, telefone, cpf, endereco,
+            nome, telefone, cpf, endereco, pais,
             assinatura_base64: assinaturaBase64,
             episodio_id: episodioId ? parseInt(episodioId, 10) : null,
             evento_id: eventoId ? parseInt(eventoId, 10) : null,
